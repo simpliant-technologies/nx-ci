@@ -219,7 +219,7 @@ jobs:
       - name: Login to Heroku container registry
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        if: "${{ env.HEROKU_API_KEY != '' }}"
+        if: env.HEROKU_API_KEY != ''
         uses: docker/login-action@v2
         with:
           registry: registry.heroku.com
@@ -230,8 +230,8 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
           HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
-        if: "${{ env.HEROKU_API_KEY != '' && env.HEROKU_EMAIL != '' }}"
-        uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        if: env.HEROKU_API_KEY != '' && env.HEROKU_EMAIL != ''
+        uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_email: ${{ env.HEROKU_EMAIL }}
           heroku_api_key: ${{ env.HEROKU_API_KEY }}
