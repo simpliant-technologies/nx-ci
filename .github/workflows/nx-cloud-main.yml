@@ -9,6 +9,8 @@ on:
         required: false
       HEROKU_API_KEY:
         required: false
+      HEROKU_EMAIL:
+        required: false
     inputs:
       number-of-agents:
         required: false
@@ -242,6 +244,18 @@ jobs:
           registry: registry.heroku.com
           username: _
           password: ${{ env.HEROKU_API_KEY }}
+
+      - name: Login to Heroku CLI
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_EMAIL: ${{ secrets.HEROKU_EMAIL }}
+        if: "${{ env.HEROKU_API_KEY != '' && env.HEROKU_EMAIL != '' }}"
+        uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        with:
+          heroku_email: ${{ env.HEROKU_EMAIL }}
+          heroku_api_key: ${{ env.HEROKU_API_KEY }}
+          heroku_app_name: ""
+          justlogin: true
 
       # An unfortunate side-effect of the way reusable workflows work is that by the time they are pulled into the "caller"
       # repo, they are effectively completely embedded in that context. This means that we cannot reference any files which
