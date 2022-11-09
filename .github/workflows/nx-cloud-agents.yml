@@ -62,7 +62,7 @@ jobs:
         run: |
           AGENTS_JSON_ARRAY=$(node -e "console.log(JSON.stringify(Array.from(new Array(${{ inputs.number-of-agents }})).map((_, i) => i + 1)));")
           echo $AGENTS_JSON_ARRAY
-          echo "::set-output name=matrix::$AGENTS_JSON_ARRAY"
+          echo "matrix=$AGENTS_JSON_ARRAY" >> $GITHUB_OUTPUT
 
   # Intentionally using capital letter in order to make the Github UI for the matrix look better
   Run:
@@ -79,15 +79,15 @@ jobs:
         # Specify shell to help normalize across different operating systems
         shell: bash
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Detect package manager
         id: package_manager
         run: |
-          echo "::set-output name=name::$([[ -f ./yarn.lock ]] && echo "yarn" || ([[ -f ./pnpm-lock.yaml ]] && echo "pnpm") || echo "npm")"
+          echo "name=$([[ -f ./yarn.lock ]] && echo "yarn" || ([[ -f ./pnpm-lock.yaml ]] && echo "pnpm") || echo "npm")" >> $GITHUB_OUTPUT
 
       # Set node/npm/yarn versions using volta, with optional overrides provided by the consumer
-      - uses: volta-cli/action@fdf4cf319494429a105efaa71d0e5ec67f338c6e
+      - uses: volta-cli/action@v4
         with:
           node-version: "${{ inputs.node-version }}"
           npm-version: "${{ inputs.npm-version }}"
@@ -96,7 +96,7 @@ jobs:
       # Install pnpm with exact version provided by consumer or fallback to latest
       - name: Install PNPM
         if: steps.package_manager.outputs.name == 'pnpm'
-        uses: pnpm/action-setup@v2.2.1
+        uses: pnpm/action-setup@v2.2.2
         with:
           version: ${{ inputs.pnpm-version || 'latest' }}
 
@@ -112,11 +112,11 @@ jobs:
           if [[ $yarn_ver != '' ]]; then echo "Yarn: $yarn_ver"; fi
           if [[ $pnpm_ver != '' ]]; then echo "PNPM: $pnpm_ver"; fi
 
-          echo "::set-output name=node_version::${node_ver:1}"
+          echo "node_version=${node_ver:1}" >> $GITHUB_OUTPUT
 
       - name: Use the node_modules cache if available [npm]
         if: steps.package_manager.outputs.name == 'npm'
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ steps.versions.outputs.node_version }}-${{ hashFiles('**/package-lock.json') }}
@@ -125,7 +125,7 @@ jobs:
 
       - name: Use the node_modules cache if available [pnpm]
         if: steps.package_manager.outputs.name == 'pnpm'
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ~/.pnpm-store
           key: ${{ runner.os }}-node-${{ steps.versions.outputs.node_version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -135,11 +135,11 @@ jobs:
       - name: Get yarn cache directory path
         if: steps.package_manager.outputs.name == 'yarn'
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
       - name: Use the node_modules cache if available [yarn]
         if: steps.package_manager.outputs.name == 'yarn'
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-node-${{ steps.versions.outputs.node_version }}-yarn-${{ hashFiles('**/yarn.lock') }}
